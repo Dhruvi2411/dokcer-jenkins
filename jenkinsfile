@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+                echo "cleared out everything"
+            }
+        }
+
+        stage("Git Clone") {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'github_2',
+                    usernameVariable: 'GIT_USER',
+                    passwordVariable: 'GIT_PASS'
+                )]) {
+                    sh '''
+                        git clone -b PremDas_ProjectNimbus \
+                        https://${GIT_USER}:${GIT_PASS}@github.com/Greybash/Nimbus.git
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('Nimbus') {
+                        app = docker.build("ngo-website:latest")
+                    }
+                }
+            }
+        }
+
+        stage('Aqua Security Scan') {
+            steps {
+                sh 'trivy image ngo-website:latest'
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                script {
+                    container = app.run("-p 8000:8000 --name ngo-website-container")
+                }
+            }
+        }
+
+    }
+}
