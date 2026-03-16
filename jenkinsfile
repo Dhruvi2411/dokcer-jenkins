@@ -1,51 +1,62 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "ngo-website:latest"
+        CONTAINER_NAME = "ngo-website-container"
+    }
+
     stages {
 
         stage('Clean Workspace') {
             steps {
                 deleteDir()
-                echo "cleared out everything"
+                echo "Workspace cleaned"
             }
         }
 
-        stage("Git Clone") {
+        stage('Clone Repository') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'github_2',
-                    usernameVariable: 'GIT_USER',
-                    passwordVariable: 'GIT_PASS'
-                )]) {
-                    sh '''
-                        git clone -b PremDas_ProjectNimbus \
-                        https://${GIT_USER}:${GIT_PASS}@github.com/Greybash/Nimbus.git
-                    '''
-                }
+                git branch: 'main', url: 'https://github.com/Dhruvi2411/dokcer-jenkins.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    dir('Nimbus') {
-                        app = docker.build("ngo-website:latest")
-                    }
+                    app = docker.build("${IMAGE_NAME}")
                 }
             }
         }
 
-        stage('Aqua Security Scan') {
+        stage('Trivy Security Scan') {
             steps {
-                sh 'trivy image ngo-website:latest'
+                sh '''
+                trivy image --format html -o trivy-report.html ${IMAGE_NAME}
+                '''
             }
         }
 
         stage('Deploy Container') {
             steps {
-                script {
-                    container = app.run("-p 8000:8000 --name ngo-website-container")
-                }
+                sh '''
+                docker rm -f ${CONTAINER_NAME} || true
+
+                docker run -d -p 8000:8000 \
+                --env-file .env \
+                --name ${CONTAINER_NAME} \
+                ${IMAGE_NAME}
+                '''
+            }
+        }
+
+        stage('Publish Trivy Report') {
+            steps {
+                publishHTML([
+                    reportDir: '.',
+                    reportFiles: 'trivy-report.html',
+                    reportName: 'Trivy Security Report'
+                ])
             }
         }
 
