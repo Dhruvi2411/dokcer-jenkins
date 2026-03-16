@@ -15,12 +15,6 @@ pipeline {
             }
         }
 
-        stage('Clone Repository') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Dhruvi2411/dokcer-jenkins.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 sh '''
@@ -32,7 +26,10 @@ pipeline {
         stage('Trivy Security Scan') {
             steps {
                 sh '''
-                trivy image --format html -o trivy-report.html ${IMAGE_NAME}
+                trivy image --format template \
+                --template "@contrib/html.tpl" \
+                -o trivy-report.html \
+                ${IMAGE_NAME}
                 '''
             }
         }
