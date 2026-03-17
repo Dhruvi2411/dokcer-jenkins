@@ -18,7 +18,7 @@ RUN python3 -m venv /venv
 RUN /venv/bin/pip install --upgrade pip && \
     /venv/bin/pip install -r requirements.txt 
 
-ENTRYPOINT [ "sh -c sleep 36000" ]
+CMD [ "/bin/bash -c sleep 36000" ]
 
 # EXPOSE 8000
 
