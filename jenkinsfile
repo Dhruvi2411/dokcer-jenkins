@@ -32,8 +32,7 @@
         stage('Trivy Security Scan') {
             steps {
                 sh '''
-                wget -O html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-
+                
                 trivy image --format template \
                 --template "@html.tpl" \
                 -o trivy-report.html \
