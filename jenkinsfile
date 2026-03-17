@@ -5,6 +5,9 @@ pipeline {
         IMAGE_NAME = "ngo-website:latest"
         CONTAINER_NAME = "ngo-website-container"
     }
+    options {
+        ansiColor('xterm')
+    }
 
     stages {
 
