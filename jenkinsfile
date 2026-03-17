@@ -1,77 +1,78 @@
-pipeline {
-    agent any
+    pipeline {
+        agent any
 
-    environment {
-        IMAGE_NAME = "ngo-website:latest"
-        CONTAINER_NAME = "ngo-website-container"
-    }
-
-    stages {
-
-        stage('Clean Workspace') {
-            steps {
-                deleteDir()
-                echo "Workspace cleaned"
-            }
+        environment {
+            IMAGE_NAME = "ngo-website:latest"
+            CONTAINER_NAME = "ngo-website-container"
         }
 
-        stage('Checkout Code') {
-            steps {
-                git url: 'https://github.com/Dhruvi2411/dokcer-jenkins.git', branch: 'main'
-            }
-        }
+        stages {
 
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                docker build -t ${IMAGE_NAME} .
-                '''
+            stage('Clean Workspace') {
+                steps {
+                    deleteDir()
+                    echo "Workspace cleaned"
+                }
             }
-        } 
+
+            stage('Checkout Code') {
+                steps {
+                    git url: 'https://github.com/Dhruvi2411/dokcer-jenkins.git', branch: 'main'
+                }
+            }
+
+            stage('Build Docker Image') {
+                steps {
+                    sh '''
+                    docker build -t ${IMAGE_NAME} .
+                    '''
+                }
+            } 
 
         stage('Trivy Security Scan') {
             steps {
                 sh '''
-                wget https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+                wget -O html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
                 trivy image --format template \
-                --template "@contrib/html.tpl" \
+                --template "@html.tpl" \
                 -o trivy-report.html \
                 ${IMAGE_NAME}
                 '''
             }
         }
 
-        stage('Deploy Container') { 
-            steps {
-                withCredentials([
-                    file(credentialsId: 'ENV_VAR', variable: 'env_file')
-                ]) {
-                    sh '''
-                    docker rm -f ${CONTAINER_NAME} || true
 
-                    docker run -d -p 8000:8000 \
-                    --env-file ${env_file} \
-                    --name ${CONTAINER_NAME} \
-                    ${IMAGE_NAME}
-                    '''
+            stage('Deploy Container') { 
+                steps {
+                    withCredentials([
+                        file(credentialsId: 'ENV_VAR', variable: 'env_file')
+                    ]) {
+                        sh '''
+                        docker rm -f ${CONTAINER_NAME} || true
+
+                        docker run -d -p 8000:8000 \
+                        --env-file ${env_file} \
+                        --name ${CONTAINER_NAME} \
+                        ${IMAGE_NAME}
+                        '''
+                    }
                 }
             }
-        }
 
 
         stage('Publish Trivy Report') {
             steps {
-
-            }publishHTML
-                ([
+                publishHTML([
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
                     reportDir: '.',
                     reportFiles: 'trivy-report.html',
                     reportName: 'Trivy Security Report'
-                ])  
+                ])
+            }
+        }
+
         }
     }
-}
