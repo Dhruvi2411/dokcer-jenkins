@@ -73,7 +73,7 @@ pipeline {
 
         stage('Publish Trivy Report') {
             steps {
-                ([
+            }publishHTM([
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
@@ -81,7 +81,6 @@ pipeline {
                     reportFiles: 'trivy-report.html',
                     reportName: 'Trivy Security Report'
                 ])
-            }publishHTML    
         }
     }
 }
