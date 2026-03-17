@@ -27,7 +27,7 @@ pipeline {
                 docker build --no-cache -t ${IMAGE_NAME} .
                 '''
             }
-        }
+        } 
 
         stage('Trivy Security Scan') {
             steps {
@@ -42,21 +42,23 @@ pipeline {
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy Container') { 
+            steps {
                 withCredentials([
                     file(credentialsId: 'ENV_VAR', variable: 'env_file')
-                ])
-            steps {
-                sh '''
-                docker rm -f ${CONTAINER_NAME} || true
+                ]) {
+                    sh '''
+                    docker rm -f ${CONTAINER_NAME} || true
 
-                docker run -d -p 8000:8000 \
-                --env-file ${env_file}\
-                --name ${CONTAINER_NAME} \
-                ${IMAGE_NAME}
-                '''
+                    docker run -d -p 8000:8000 \
+                    --env-file ${env_file} \
+                    --name ${CONTAINER_NAME} \
+                    ${IMAGE_NAME}
+                    '''
+                }
             }
         }
+
 
         stage('Publish Trivy Report') {
             steps {
