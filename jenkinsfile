@@ -5,9 +5,6 @@ pipeline {
         IMAGE_NAME = "ngo-website:latest"
         CONTAINER_NAME = "ngo-website-container"
     }
-    options {
-        ansiColor('xterm')
-    }
 
     stages {
 
@@ -15,12 +12,6 @@ pipeline {
             steps {
                 deleteDir()
                 echo "Workspace cleaned"
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo '\033[34mHello\033[0m \033[33mcolorful\033[0m \033[35mworld!\033[0m'
             }
         }
 
@@ -33,7 +24,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                docker build --no-cache -t ${IMAGE_NAME} .
+                docker build -t ${IMAGE_NAME} .
                 '''
             }
         } 
@@ -44,7 +35,7 @@ pipeline {
                 wget https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
                 trivy image --format template \
-                --template "@html.tpl" \
+                --template "@contrib/html.tpl" \
                 -o trivy-report.html \
                 ${IMAGE_NAME}
                 '''
@@ -59,8 +50,6 @@ pipeline {
                     sh '''
                     docker rm -f ${CONTAINER_NAME} || true
 
-
-
                     docker run -d -p 8000:8000 \
                     --env-file ${env_file} \
                     --name ${CONTAINER_NAME} \
@@ -73,14 +62,16 @@ pipeline {
 
         stage('Publish Trivy Report') {
             steps {
-            }publishHTM([
+
+            }publishHTML
+                ([
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
                     reportDir: '.',
                     reportFiles: 'trivy-report.html',
                     reportName: 'Trivy Security Report'
-                ])
+                ])  
         }
     }
 }
