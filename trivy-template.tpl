@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Trivy Security Report</title>
+    <title>Trivy Report</title>
     <style>
         body {
             font-family: Arial;
@@ -23,32 +23,31 @@
         th {
             background-color: #1e293b;
         }
-        .CRITICAL { background-color: #dc2626; color: white; }
-        .HIGH { background-color: #f97316; color: white; }
-        .MEDIUM { background-color: #eab308; color: black; }
-        .LOW { background-color: #22c55e; color: black; }
-        .UNKNOWN { background-color: #64748b; color: white; }
+        .CRITICAL { background-color: #dc2626; }
+        .HIGH { background-color: #f97316; }
+        .MEDIUM { background-color: #eab308; }
+        .LOW { background-color: #22c55e; }
     </style>
 </head>
 <body>
 
-<h1>🚨 Trivy Security Scan Report</h1>
+<h1>🚨 Trivy Security Report</h1>
 
 <table>
 <tr>
+    <th>Target</th>
     <th>Package</th>
     <th>Vulnerability</th>
     <th>Severity</th>
-    <th>Description</th>
 </tr>
 
-{{ range .Results }}
+{{ range . }}
   {{ range .Vulnerabilities }}
   <tr class="{{ .Severity }}">
+      <td>{{ $.Target }}</td>
       <td>{{ .PkgName }}</td>
       <td>{{ .VulnerabilityID }}</td>
       <td>{{ .Severity }}</td>
-      <td>{{ .Title }}</td>
   </tr>
   {{ end }}
 {{ end }}
