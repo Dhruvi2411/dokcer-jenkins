@@ -34,12 +34,13 @@ pipeline {
                 sh '''
                 trivy image \
                 --format template \
-                --template "@trivy-template.tpl" \
+                --template "@/usr/local/share/trivy/templates/html.tpl" \
                 -o trivy-report.html \
                 ${IMAGE_NAME} || true
                 '''
             }
         }
+
 
         stage('Deploy Container') { 
             steps {
