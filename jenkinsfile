@@ -29,19 +29,18 @@
                 }
             } 
 
-        stage('Trivy Security Scan') {
+        stage('Trivy Scan') {
             steps {
                 sh '''
-                curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-
-                trivy image --format template \
-                --template "@html.tpl" \
+                trivy image \
+                --format template \
+                --template "@trivy-template.tpl" \
                 -o trivy-report.html \
-                ${IMAGE_NAME}
-                
+                ngo-website:latest
                 '''
             }
         }
+
 
 
             stage('Deploy Container') { 
