@@ -31,9 +31,10 @@ pipeline {
 
         stage('Trivy Scan') {
             steps {
-curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
                 sh '''
+                curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+
                 trivy image \
                 --format template \
                 --template "@/usr/local/share/trivy/templates/html.tpl" \
